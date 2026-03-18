@@ -1,13 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-if(NOT DEFINED CMAKE_C_COMPILER)
-    set(CMAKE_C_COMPILER clang-19 CACHE STRING "C compiler" FORCE)
-endif()
-
-if(NOT DEFINED CMAKE_CXX_COMPILER)
-    set(CMAKE_CXX_COMPILER clang++-19 CACHE STRING "C++ compiler" FORCE)
-endif()
-
 project(learn_cpp LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -15,5 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+add_compile_options($<$<CONFIG:Debug>:-gdwarf-4>)
 
 add_subdirectory(demos/1.miniTensor)

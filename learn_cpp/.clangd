@@ -1,0 +1,15 @@
+CompileFlags:
+  CompilationDatabase: build/debug
+
+Diagnostics:
+  ClangTidy:
+    Add:
+      - bugprone-*
+      - clang-analyzer-*
+      - modernize-*
+      - performance-*
+    Remove:
+      - modernize-use-trailing-return-type
+
+Index:
+  Background: Build
