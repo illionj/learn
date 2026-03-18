@@ -1,0 +1,6 @@
+{
+  "python.defaultInterpreterPath": "/home/saimo/miniforge3/envs/learn-pytorch/bin/python",
+  "python.analysis.extraPaths": [
+    "/home/saimo/miniforge3/envs/learn-pytorch/lib/python3.12/site-packages"
+  ],
+}

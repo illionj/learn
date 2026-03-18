@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "learn_cpp"
+		},
+		{
+			"path": "learn_cuda"
+		},
+		{
+			"path": "learn_pytorch"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}

@@ -1,0 +1,35 @@
+{
+  "python.defaultInterpreterPath": "/home/saimo/miniforge3/envs/learn-pytorch/bin/python",
+  "python.analysis.extraPaths": [
+    "/home/saimo/miniforge3/envs/learn-pytorch/lib/python3.12/site-packages"
+  ],
+  "C_Cpp.codeAnalysis.runAutomatically": false,
+  "C_Cpp.intelliSenseEngine": "disabled",
+  "C_Cpp.formatting": "disabled",
+  "C_Cpp.autoAddFileAssociations": false,
+  "C_Cpp.autocompleteAddParentheses": false,
+  "C_Cpp.autocomplete": "disabled",
+  "C_Cpp.errorSquiggles": "disabled",
+  "clangd.arguments": [
+    "--background-index",
+    "-j=12",
+    "--compile-commands-dir=build",
+    "--all-scopes-completion",
+    "--completion-style=detailed",
+    "--header-insertion=never",
+    "--pch-storage=memory",
+    "--cross-file-rename",
+    "--clang-tidy",
+    "--enable-config",
+    "--pretty",
+    "--query-driver=/usr/bin/clang++-19"
+  ],
+  "clangd.path": "/usr/bin/clangd-19",
+  "[cpp]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+    // "editor.formatOnSave": true,
+    // "editor.formatOnSaveMode": "file",
+    // "editor.formatOnType": true,
+    // "editor.formatOnPaste": true
+  }
+}
