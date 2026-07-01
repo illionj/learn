@@ -26,7 +26,6 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "dependsOn": "cmake: configure (debug)",
             "group": {
                 "kind": "build",
                 "isDefault": true

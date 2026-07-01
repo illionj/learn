@@ -26,6 +26,12 @@ pwd
 - `clangd-19`
 - `gdb`
 
+这个工程使用 Git submodule 管理三方库。首次 clone 后执行：
+
+```bash
+git submodule update --init --recursive
+```
+
 ## 终端中配置与编译
 
 配置 Debug：
@@ -68,21 +74,47 @@ ninja: no work to do.
 
 ## 终端中运行
 
-当前可执行文件会生成在各自 preset 对应的 `build` 目录下。
+当前可执行文件会统一生成在各自编译根目录的 `bin/` 下。
 
-例如 `miniTensor` 的 Debug 版本：
+例如 `1.miniTensor` 的 Debug 版本：
 
 ```bash
-./build/debug/demos/1.miniTensor/miniTensor
+./demos/bin/1.miniTensor
+```
+
+例如 `leetcode/1.lc416` 的 Debug 版本：
+
+```bash
+./leetcode/bin/1.lc416
 ```
 
 如果以后 `demos/` 下有更多小项目，终端流程不变：
 
 - 配置还是用 `cmake --preset ...`
 - 编译还是用 `cmake --build --preset ...`
-- 运行时只需要把可执行文件路径换成对应 demo 的路径
+- 运行时只需要到对应根目录的 `bin/` 下执行目标
 
 也就是说，不需要为每个 demo 重新发明一套编译和运行流程。
+
+## 新增 demo
+
+新增 demo 时，在 `demos/` 下新建一个子目录，把 `.cpp` 文件放进去即可。
+
+如果子目录里没有 `CMakeLists.txt`，顶层会自动扫描这个目录并创建可执行目标。
+
+如果子目录里需要保留自己的 `CMakeLists.txt`，通常只写这一行：
+
+```cmake
+learn_cpp_add_auto_executable()
+```
+
+目标名默认严格来自目录名。比如 `demos/1.miniTensor` 会生成 `1.miniTensor`。
+
+自动创建的目标会默认链接 `fmt::fmt`，可以直接在源码里使用：
+
+```cpp
+#include <fmt/core.h>
+```
 
 ## 终端中调试
 
@@ -97,7 +129,7 @@ cmake --build --preset debug
 然后直接用 `gdb` 调试可执行文件：
 
 ```bash
-gdb ./build/debug/demos/1.miniTensor/miniTensor
+gdb ./demos/bin/1.miniTensor
 ```
 
 进入 `gdb` 以后，常用命令如下：

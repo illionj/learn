@@ -10,4 +10,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_options($<$<CONFIG:Debug>:-gdwarf-4>)
 
-add_subdirectory(demos/1.miniTensor)
+set(FMT_DOC OFF CACHE BOOL "" FORCE)
+set(FMT_TEST OFF CACHE BOOL "" FORCE)
+set(FMT_INSTALL OFF CACHE BOOL "" FORCE)
+add_subdirectory(third_party/fmt)
+
+include(cmake/LearnCppAuto.cmake)
+
+learn_cpp_add_demo_tree(leetcode)
+learn_cpp_add_demo_tree(demos)

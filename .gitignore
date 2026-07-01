@@ -29,6 +29,8 @@ learn_pytorch/data/
 # CMake / clangd artifacts for learn_cpp
 learn_cpp/build*/
 learn_cpp/.cache/
+learn_cpp/demos/bin/
+learn_cpp/leetcode/bin/
 learn_cpp/demos/*/miniTensor
 learn_cpp/demos/*/demo
 

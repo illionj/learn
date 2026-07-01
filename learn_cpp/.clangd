@@ -13,3 +13,6 @@ Diagnostics:
 
 Index:
   Background: Build
+
+Completion:
+  HeaderInsertion: Never
