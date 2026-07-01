@@ -25,12 +25,21 @@ ENV/
 Thumbs.db
 
 learn_pytorch/logs/
-
+learn_pytorch/data/
 # CMake / clangd artifacts for learn_cpp
 learn_cpp/build*/
 learn_cpp/.cache/
 learn_cpp/demos/*/miniTensor
 learn_cpp/demos/*/demo
+
+# CUDA sample build outputs
+learn_cuda/1.vecAdd/vecAdd
+learn_cuda/1.vecAdd/vecAdd_cu
+learn_cuda/2.colorToGrayscaleConversion/colorToGray
+learn_cuda/3.blur/blur
+learn_cuda/4.matrixMul/matMul
+learn_cuda/5.tiling/tiling
+learn_cuda/5.tiling/tiling2
 
 .vscode/*
 !.vscode/settings.json

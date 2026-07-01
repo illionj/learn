@@ -52,7 +52,7 @@ def setup_logger(
             else _SIMPLE_CONSOLE_FORMAT
         )
         logger.add(
-            sys.stderr,
+            sys.stdout,
             level=console_level,
             enqueue=True,
             backtrace=False,

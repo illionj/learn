@@ -1,16 +1,16 @@
-import sys
 from pprint import pformat
 
+import sys
 from pathlib import Path
-
-import torch
-import numpy as np
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from learn_pytorch.common import get_logger
+
+import torch
+import numpy as np
+
 
 
 
@@ -285,4 +285,26 @@ log.info(t1.shape)
 
 
 
+
+tensor=torch.ones((2,2),dtype=torch.float32)
+log.info(tensor)
+log.info(tensor.T)
+y1=tensor @ tensor.T
+log.info(y1)
+y2=tensor.matmul(tensor.T)
+log.info(y2)
+
+z1=tensor*tensor
+log.info(z1)
+
+agg=tensor.sum()
+log.info(f"agg={agg},shape={agg.shape},type={type(agg)}")
+agg_item=agg.item()
+log.info(f"agg_item={agg_item},type={type(agg_item)}")
+
+
+# in place operation
+# 我觉得一个很意思的点,tensor里面这么多操作和内容,torch教程惜字如金的同时却专门提了一嘴这个"不推荐"的操作
+# 因为它很有用,但是很容易用错.但如果有c/c++背景则很好理解,相当于之间改内存
+# 一个直接影响就会导致自动微分读取地址的时候读到一个错的东西
 
