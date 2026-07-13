@@ -1,0 +1,29 @@
+CompileFlags:
+  CompilationDatabase: build/debug
+
+Diagnostics:
+  ClangTidy:
+    Add:
+      - bugprone-*
+      - clang-analyzer-*
+
+Index:
+  Background: Build
+
+---
+If:
+  PathMatch: .*\.cu
+CompileFlags:
+  Add:
+    - -x
+    - cuda
+    - --cuda-path=/usr/local/cuda
+    - -I/usr/local/cuda/include
+    - -I/home/saimo/wangxiaolei/learn/learn_cuda/third_party/fmt/include
+  Remove:
+    - -forward-unknown-to-host-compiler
+    - --generate-code=*
+Diagnostics:
+  Suppress:
+    - unused-includes
+    - missing-includes

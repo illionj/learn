@@ -1,3 +1,6 @@
 [submodule "learn_cpp/third_party/fmt"]
 	path = learn_cpp/third_party/fmt
 	url = https://github.com/fmtlib/fmt.git
+[submodule "learn_cuda/third_party/fmt"]
+	path = learn_cuda/third_party/fmt
+	url = https://github.com/fmtlib/fmt.git

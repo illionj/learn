@@ -35,6 +35,9 @@ learn_cpp/demos/*/miniTensor
 learn_cpp/demos/*/demo
 
 # CUDA sample build outputs
+learn_cuda/build*/
+learn_cuda/pmpp/bin/
+learn_cuda/leetGPU/bin/
 learn_cuda/1.vecAdd/vecAdd
 learn_cuda/1.vecAdd/vecAdd_cu
 learn_cuda/2.colorToGrayscaleConversion/colorToGray
@@ -42,6 +45,15 @@ learn_cuda/3.blur/blur
 learn_cuda/4.matrixMul/matMul
 learn_cuda/5.tiling/tiling
 learn_cuda/5.tiling/tiling2
+learn_cuda/pmpp/1.vecAdd/vecAdd
+learn_cuda/pmpp/1.vecAdd/vecAdd_cu
+learn_cuda/pmpp/2.colorToGrayscaleConversion/colorToGray
+learn_cuda/pmpp/3.blur/blur
+learn_cuda/pmpp/4.matrixMul/matMul
+learn_cuda/pmpp/5.tiling/tiling
+learn_cuda/pmpp/5.tiling/tiling2
+learn_cuda/leetGPU/1.vecAdd/vecAdd
+learn_cuda/leetGPU/1.vecAdd/vecAdd_cu
 
 .vscode/*
 !.vscode/settings.json
