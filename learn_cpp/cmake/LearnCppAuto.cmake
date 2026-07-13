@@ -59,6 +59,7 @@ function(learn_cpp_add_auto_executable)
         -Wall
         -Wextra
         -Wpedantic
+        $<$<CXX_COMPILER_ID:Clang>:-Weverything>
     )
     target_include_directories("${_target}" PRIVATE "${_dir}")
 

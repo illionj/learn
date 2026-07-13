@@ -14,6 +14,12 @@ set(FMT_DOC OFF CACHE BOOL "" FORCE)
 set(FMT_TEST OFF CACHE BOOL "" FORCE)
 set(FMT_INSTALL OFF CACHE BOOL "" FORCE)
 add_subdirectory(third_party/fmt)
+get_target_property(_fmt_include_dirs fmt INTERFACE_INCLUDE_DIRECTORIES)
+if(_fmt_include_dirs)
+    set_target_properties(fmt PROPERTIES
+        INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_fmt_include_dirs}"
+    )
+endif()
 
 include(cmake/LearnCppAuto.cmake)
 

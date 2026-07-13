@@ -1,0 +1,1 @@
+learn_cpp_add_auto_executable()

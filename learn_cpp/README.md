@@ -190,3 +190,7 @@ gdb ./demos/bin/1.miniTensor
 ```bash
 cmake --preset debug
 ```
+
+git -c http.proxy=http://127.0.0.1:27890 \
+    -c https.proxy=http://127.0.0.1:27890 \
+    push
