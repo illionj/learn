@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cuda_runtime.h>
 #include <random>
+#include <utils.h>
 
 constexpr int M = 3171;
 constexpr int K = 2312;
@@ -196,22 +197,8 @@ void test_tiling() {
 
   cudaMemcpy(matC_h, matC_d, C_BYTE_SIZE, cudaMemcpyDeviceToHost);
 
-  for (int i = 0; i < M; i++) {
-    for (int j = 0; j < N; j++) {
-      int idx = i * N + j;
-      float cpu = matC_c[idx];
-      float gpu = matC_h[idx];
-      auto rtol = 1e-3f;
-      auto atol = 1e-3f;
-      float diff = std::abs(cpu - gpu);
-      float tol = atol + rtol * std::fabs(cpu);
-
-      if (!std::isfinite(cpu) || !std::isfinite(gpu) || diff > tol) {
-        printf("matC_c=%f,matC_h=%f\n", matC_c[i * N + j], matC_h[i * N + j]);
-        printf("i=%d,j=%d\n", i, j);
-        exit(0);
-      }
-    }
+  if (!compareFloatArrays(matC_c, matC_h, M, N)) {
+    exit(EXIT_FAILURE);
   }
 
   std::printf("计算正确\n");

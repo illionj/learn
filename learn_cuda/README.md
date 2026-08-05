@@ -111,3 +111,10 @@ cmake --build --preset debug
 
 fmt::print("value = {}\n", value);
 ```
+
+
+
+cmake --preset debug
+cmake --build --preset debug
+nsys profile --trace=cuda,nvtx ./leetGPU/bin/2.matrix_multiplication_main
+nsys stats report1.nsys-rep > result.txt

@@ -27,6 +27,8 @@ if(_fmt_include_dirs)
     )
 endif()
 
+add_subdirectory(common)
+
 include(cmake/LearnCudaAuto.cmake)
 
 learn_cuda_add_demo_tree(pmpp)

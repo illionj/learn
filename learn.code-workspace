@@ -13,5 +13,18 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"C_Cpp.intelliSenseEngine": "disabled",
+		"editor.codeActionsOnSave": {
+			"source.addMissingIncludes": "never",
+			"source.organizeIncludes": "never"
+		},
+		"clangd.arguments": [
+			"--header-insertion=never",
+			"--clang-tidy",
+			"--enable-config",
+			"--query-driver=/usr/bin/clang++-19,/usr/bin/clang-19"
+		],
+		"clangd.path": "/usr/bin/clangd-19"
+	}
 }

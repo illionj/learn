@@ -85,7 +85,9 @@ function(learn_cuda_add_executable)
         $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:Clang>>:-Weverything>
     )
 
-    if(TARGET fmt::fmt)
+    if(TARGET learn_cuda_common)
+        target_link_libraries("${_target}" PRIVATE learn_cuda_common)
+    elseif(TARGET fmt::fmt)
         target_link_libraries("${_target}" PRIVATE fmt::fmt)
     endif()
 
