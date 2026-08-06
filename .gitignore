@@ -55,5 +55,11 @@ learn_cuda/pmpp/5.tiling/tiling2
 learn_cuda/leetGPU/1.vecAdd/vecAdd
 learn_cuda/leetGPU/1.vecAdd/vecAdd_cu
 
+# Local binaries for bz exercises
+bz/day1/lc1
+bz/day1/lc26
+bz/day1/lc88
+bz/day1/matrix_transpose
+
 .vscode/*
 !.vscode/settings.json
