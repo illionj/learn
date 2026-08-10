@@ -109,12 +109,12 @@ __global__ void matrix_multiplication_kernel2(const float* A, const float* B, fl
 
     int A_tile_size = BM * BN;
     int B_tile_size = BN * BK;
-    int tid = ty * blockDim.y + tx;
+    int tid = ty * blockDim.x + tx;
     float c_temp = 0.0f;
     int blockSize = blockDim.x * blockDim.y;
     int count = (N + BN - 1) / BN;
-    int row = by * blockDim.y + ty;
-    int col = bx * blockDim.x + tx;
+    int row = by * BM + ty;
+    int col = bx * BK + tx;
     for (int i = 0; i < count; i++)
     {
 
@@ -124,7 +124,7 @@ __global__ void matrix_multiplication_kernel2(const float* A, const float* B, fl
             int _y = p / BN;
             A_tile[p] = 0.0f;
             int A_xidx = BN * i + _x;
-            int A_yidx = BM * i + _y;
+            int A_yidx = BM * by + _y;
             if (A_xidx < N && A_yidx < M)
             {
                 A_tile[p] = A[A_yidx * N + A_xidx];
@@ -135,7 +135,7 @@ __global__ void matrix_multiplication_kernel2(const float* A, const float* B, fl
         {
             int _x = p % BK;
             int _y = p / BK;
-            int B_xidx = BK * i + _x;
+            int B_xidx = bx * BK + _x;
             int B_yidx = i * BN + _y;
             B_tile[p] = 0.0f;
             if (B_xidx < K && B_yidx < N)
@@ -148,7 +148,7 @@ __global__ void matrix_multiplication_kernel2(const float* A, const float* B, fl
         for (int q = 0; q < BN; ++q)
         {
             float a_temp = A_tile[threadIdx.y * BN + q];
-            float b_temp = B_tile[q * BN + threadIdx.x];
+            float b_temp = B_tile[q * BK + threadIdx.x];
             c_temp += a_temp * b_temp;
         }
         __syncthreads();
@@ -163,7 +163,7 @@ __global__ void matrix_multiplication_kernel2(const float* A, const float* B, fl
 extern "C" void solve(const float* A, const float* B, float* C, int M, int N, int K, int BM, int BN,
                       int BK)
 {
-    dim3 threadsPerBlock(BM, BK);
+    dim3 threadsPerBlock(BK, BM);
     dim3 blocksPerGrid((K + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (M + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
@@ -192,13 +192,13 @@ extern "C" void solve(const float* A, const float* B, float* C, int M, int N, in
 int main()
 {
 
-    const int M = 35;
-    const int N = 45;
-    const int K = 61;
+    const int M = 335;
+    const int N = 435;
+    const int K = 621;
 
-    const int BM = 16;
-    const int BN = 17;
-    const int BK = 16;
+    const int BM = 46;
+    const int BN = 37;
+    const int BK = 21;
 
     const auto A_h = makeRandArr(M, N);
     const auto B_h = makeRandArr(N, K);
