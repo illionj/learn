@@ -1,5 +1,7 @@
 
 #include <cmath>
+#include <cstddef>
+#include <cstdlib>
 #include <cstdio>
 #include <cuda_runtime.h>
 
@@ -12,12 +14,14 @@ __global__ void colortoGrayscaleConvertion(unsigned char *Pout,
   int col = blockDim.x * blockIdx.x + threadIdx.x;
   int row = blockDim.y * blockIdx.y + threadIdx.y;
   if (col <width  && row < height) {
-    auto index=row*width+col;
+    const std::size_t index = static_cast<std::size_t>(row) * static_cast<std::size_t>(width) +
+                              static_cast<std::size_t>(col);
     int r=Pin[index*3];
     int g=Pin[index*3+1];
     int b=Pin[index*3+2];
     std::printf("r=%d,g=%d,b=%d\n",r,g,b);
-    Pout[index]=0.21*r+0.72*g+0.07*b;
+    const float luminance = 0.21F * r + 0.72F * g + 0.07F * b;
+    Pout[index] = static_cast<unsigned char>(luminance);
 
   }
 }

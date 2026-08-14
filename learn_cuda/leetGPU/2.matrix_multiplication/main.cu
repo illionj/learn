@@ -1,226 +1,195 @@
 #include "cuda_check.h"
+#include "fmt/core.h"
 #include "utils.h"
-#include <nvtx3/nvToolsExt.h>
-#include <random>
+#include <cstdio>
+#include <cuda_runtime.h>
 
-// host 版本
+constexpr int BM = 2;
+constexpr int BN = 3;
+constexpr int BK = 4;
 void matrix_multiplication_host(const float* A, const float* B, float* C, int M, int N, int K)
 {
-    for (int m = 0; m < M; m++)
+
+    for (int m = 0; m < M; ++m)
     {
-        for (int k = 0; k < K; k++)
+        for (int k = 0; k < K; ++k)
         {
-            int c_idx = m * K + k;
-            float temp = 0.0f;
-            for (int n = 0; n < N; n++)
+            float c_temp = 0.0f;
+            for (int n = 0; n < N; ++n)
             {
-                int a_idx = m * N + n;
-                int b_idx = n * K + k;
-                temp += A[a_idx] * B[b_idx];
+                c_temp += A[m * N + n] * B[n * K + k];
             }
-            C[c_idx] = temp;
+            C[m * K + k] = c_temp;
         }
     }
 }
 
-// 最简单的cuda版本
-__global__ void matrix_multiplication_kernel(const float* A, const float* B, float* C, int M, int N,
-                                             int K)
+__global__ void matrix_multiplication_kernel_v0(const float* A, const float* B, float* C, int M,
+                                                int N, int K)
 {
     int col = blockDim.x * blockIdx.x + threadIdx.x;
     int row = blockDim.y * blockIdx.y + threadIdx.y;
-    if (col >= K || row >= M)
-        return;
-
-    float temp = 0.0f;
-    for (int n = 0; n < N; n++)
-    {
-        int a_idx = row * N + n;
-        int b_idx = n * K + col;
-        temp += A[a_idx] * B[b_idx];
-    }
-    int c_idx = row * K + col;
-    C[c_idx] = temp;
-}
-
-// 1.shared 两种格式
-// 2.如何启用tile
-__global__ void matrix_multiplication_kernel1(const float* A, const float* B, float* C, int M,
-                                              int N, int K, int BM, int BN, int BK)
-{
-    extern __shared__ float shared_mem[];
-    float* A_tile = shared_mem;
-    float* B_tile = shared_mem + BM * BN;
-
-    int count = (N + BN - 1) / BN;
-    int tx = threadIdx.x;
-    int ty = threadIdx.y;
-    int bx = blockIdx.x;
-    int by = blockIdx.y;
-    int col = bx * blockDim.x + tx;
-    int row = by * blockDim.y + ty;
-    float c_temp = 0.0f;
-    for (int i = 0; i < count; ++i)
-    {
-        int A_xidx = BN * i + tx;
-        int A_yidx = row;
-
-        int B_xidx = col;
-        int B_yidx = BN * i + ty;
-
-        A_tile[ty * BN + tx] = 0.0f;
-        B_tile[ty * BK + tx] = 0.0f;
-        if (A_xidx < N && A_yidx < M)
-        {
-            A_tile[ty * BN + tx] = A[A_yidx * N + A_xidx];
-        }
-        if (B_xidx < K && B_yidx < N)
-        {
-            B_tile[ty * BK + tx] = B[B_yidx * K + B_xidx];
-        }
-        __syncthreads();
-
-        for (int pn = 0; pn < BN; ++pn)
-        {
-            float a_temp = A_tile[threadIdx.y * BN + pn];
-            float b_temp = B_tile[pn * BK + threadIdx.x];
-            c_temp += a_temp * b_temp;
-        }
-        __syncthreads();
-    }
-    if (row < M && col < K)
-    {
-        C[row * K + col] = c_temp;
-    }
-}
-
-// 支持任意形状  不考虑性能 但是tile至少要大于block
-__global__ void matrix_multiplication_kernel2(const float* A, const float* B, float* C, int M,
-                                              int N, int K, int BM, int BN, int BK)
-{
-    int tx = threadIdx.x;
-    int ty = threadIdx.y;
-    int bx = blockIdx.x;
-    int by = blockIdx.y;
-
-    extern __shared__ float shared_mem[];
-    float* A_tile = shared_mem;
-    float* B_tile = shared_mem + BM * BN;
-
-    int A_tile_size = BM * BN;
-    int B_tile_size = BN * BK;
-    int tid = ty * blockDim.x + tx;
-    float c_temp = 0.0f;
-    int blockSize = blockDim.x * blockDim.y;
-    int count = (N + BN - 1) / BN;
-    int row = by * BM + ty;
-    int col = bx * BK + tx;
-    for (int i = 0; i < count; i++)
-    {
-
-        for (int p = tid; p < A_tile_size; p += blockSize)
-        {
-            int _x = p % BN;
-            int _y = p / BN;
-            A_tile[p] = 0.0f;
-            int A_xidx = BN * i + _x;
-            int A_yidx = BM * by + _y;
-            if (A_xidx < N && A_yidx < M)
-            {
-                A_tile[p] = A[A_yidx * N + A_xidx];
-            }
-        }
-
-        for (int p = tid; p < B_tile_size; p += blockSize)
-        {
-            int _x = p % BK;
-            int _y = p / BK;
-            int B_xidx = bx * BK + _x;
-            int B_yidx = i * BN + _y;
-            B_tile[p] = 0.0f;
-            if (B_xidx < K && B_yidx < N)
-            {
-                B_tile[p] = B[B_yidx * K + B_xidx];
-            }
-        }
-        __syncthreads();
-
-        for (int q = 0; q < BN; ++q)
-        {
-            float a_temp = A_tile[threadIdx.y * BN + q];
-            float b_temp = B_tile[q * BK + threadIdx.x];
-            c_temp += a_temp * b_temp;
-        }
-        __syncthreads();
-    }
+    // printf("col=%d,row=%d\n", col, row);
     if (col < K && row < M)
     {
+        float c_temp = 0.0f;
+        for (int n = 0; n < N; ++n)
+        {
+            c_temp += A[row * N + n] * B[n * K + col];
+        }
         C[row * K + col] = c_temp;
     }
 }
 
-// A, B, C are device pointers (i.e. pointers to memory on the GPU)
-extern "C" void solve(const float* A, const float* B, float* C, int M, int N, int K, int BM, int BN,
-                      int BK)
+// 任意形状tile,但是tile形状>block
+__global__ void matrix_multiplication_kernel(const float* A, const float* B, float* C, int M, int N,
+                                             int K)
 {
-    dim3 threadsPerBlock(BK, BM);
+
+    // printf("block=(%d,%d) thread=(%d,%d)\n", blockIdx.y, blockIdx.x, threadIdx.y, threadIdx.x);
+
+    __shared__ float aTile[BM][BN];
+    __shared__ float bTile[BN][BK];
+    __shared__ float cTile[BM][BK];
+
+    // 第一步是需要讲对应tile加载完毕
+    const int tid = threadIdx.y * blockDim.x + threadIdx.x;
+    const int blockSize = blockDim.x * blockDim.y;
+    const int count = (N + BN - 1) / BN;
+    for (int i = tid; i < BM * BK; i += blockSize)
+    {
+        int tx = i % BK;
+        int ty = i / BK;
+        cTile[ty][tx] = 0.0f;
+    }
+    __syncthreads();
+    for (int c = 0; c < count; ++c)
+    {
+
+        for (int i = tid; i < BM * BN; i += blockSize)
+        {
+            int tx = i % BN;
+            int ty = i / BN;
+            int xIdx = c * BN + tx;
+            int yIdx = blockIdx.y * BM + ty;
+            if (yIdx < M && xIdx < N)
+            {
+                aTile[ty][tx] = A[yIdx * N + xIdx];
+            }
+            else
+            {
+                aTile[ty][tx] = 0.0f;
+            }
+        }
+
+        for (int i = tid; i < BN * BK; i += blockSize)
+        {
+            int tx = i % BK;
+            int ty = i / BK;
+            int xIdx = blockIdx.x * BK + tx;
+            int yIdx = c * BN + ty;
+            if (yIdx < N && xIdx < K)
+            {
+                bTile[ty][tx] = B[yIdx * K + xIdx];
+            }
+            else
+            {
+                bTile[ty][tx] = 0.0f;
+            }
+        }
+        __syncthreads();
+
+        // 下面需要计算tile的值,但是记住 线程数有限
+        for (int i = tid; i < BM * BK; i += blockSize)
+        {
+            int tx = i % BK;
+            int ty = i / BK;
+            for (int n = 0; n < BN; ++n)
+            {
+                cTile[ty][tx] += aTile[ty][n] * bTile[n][tx];
+            }
+        }
+        __syncthreads();
+    }
+    // 现在要讲cTile拷贝到指定位置
+    for (int i = tid; i < BM * BK; i += blockSize)
+    {
+        int tx = i % BK;
+        int ty = i / BK;
+        int xIdx = blockIdx.x * BK + tx;
+        int yIdx = blockIdx.y * BM + ty;
+        if (0)
+        {
+            printf("block=(%d,%d) thread=(%d,%d)\ntid=%d,i=%d,(%d,%d),idx=%d\n", blockIdx.y,
+                   blockIdx.x, threadIdx.y, threadIdx.x, tid, i, yIdx, xIdx, yIdx * K + xIdx);
+        }
+        if (yIdx < M && xIdx < K)
+        // if (1)
+        {
+
+            C[yIdx * K + xIdx] = cTile[ty][tx];
+            // C[yIdx * K + xIdx] = yIdx * K + xIdx;
+
+            // float temp = 0;
+            // temp = cTile[ty][tx];
+            // printf("cTile[%d][%d]=%f\n", ty, tx, temp);
+            // // C[yIdx * K + xIdx] = temp;
+        }
+    }
+}
+
+extern "C" void solve_v0(const float* A, const float* B, float* C, int M, int N, int K)
+{
+    dim3 threadsPerBlock(2, 2);
     dim3 blocksPerGrid((K + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (M + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    matrix_multiplication_kernel_v0<<<blocksPerGrid, threadsPerBlock>>>(A, B, C, M, N, K);
+    CUDA_CHECK(cudaDeviceSynchronize());
+}
+
+extern "C" void solve(const float* A, const float* B, float* C, int M, int N, int K)
+{
+    dim3 threadsPerBlock(2, 2);
+    dim3 blocksPerGrid((K + BK - 1) / BK, (M + BM - 1) / BM);
+    fmt::println("grid=({},{})", blocksPerGrid.x, blocksPerGrid.y);
+    (matrix_multiplication_kernel<<<blocksPerGrid, threadsPerBlock>>>(A, B, C, M, N, K));
+    CUDA_CHECK(cudaDeviceSynchronize());
+}
+int main()
+{
+    constexpr int M = 4;
+    constexpr int N = 5;
+    constexpr int K = 6;
+
+    const auto A = makeRegularArr(N, M);
+    const auto aSize = A.size() * sizeof(float);
+    const auto B = makeRegularArr(K, N);
+    const auto bSize = B.size() * sizeof(float);
+
+    const auto C = makeRegularArr(K, M);
+    const auto cSize = C.size() * sizeof(float);
+
+    const auto C1 = makeRegularArr(K, M);
+
+    matrix_multiplication_host(A.data(), B.data(), const_cast<float*>(C1.data()), M, N, K);
 
     float* A_d = nullptr;
     float* B_d = nullptr;
     float* C_d = nullptr;
 
-    cudaMalloc((void**) &A_d, sizeof(float) * M * N);
-    cudaMalloc((void**) &B_d, sizeof(float) * N * K);
-    cudaMalloc((void**) &C_d, sizeof(float) * M * K);
+    cudaMalloc((void**) &A_d, aSize);
+    cudaMalloc((void**) &B_d, bSize);
+    cudaMalloc((void**) &C_d, cSize);
 
-    cudaMemcpy(A_d, A, sizeof(float) * M * N, cudaMemcpyHostToDevice);
-    cudaMemcpy(B_d, B, sizeof(float) * N * K, cudaMemcpyHostToDevice);
+    cudaMemcpy(A_d, A.data(), aSize, cudaMemcpyHostToDevice);
+    cudaMemcpy(B_d, B.data(), bSize, cudaMemcpyHostToDevice);
 
-    size_t shared_bytes = (BM * BN + BN * BK) * sizeof(float);
-
-    nvtxRangePush("matrix multiply");
-    matrix_multiplication_kernel2<<<blocksPerGrid, threadsPerBlock, shared_bytes>>>(
-        A_d, B_d, C_d, M, N, K, BM, BN, BK);
-    cudaDeviceSynchronize();
-    nvtxRangePop();
-
-    cudaMemcpy(C, C_d, sizeof(float) * M * K, cudaMemcpyDeviceToHost);
-}
-
-int main()
-{
-
-    const int M = 335;
-    const int N = 435;
-    const int K = 621;
-
-    const int BM = 46;
-    const int BN = 37;
-    const int BK = 21;
-
-    const auto A_h = makeRandArr(M, N);
-    const auto B_h = makeRandArr(N, K);
-    // std::vector<float> A_h;
-    // A_h.resize(M * N);
-    // for (int i = 0; i < M * N; i++)
-    // {
-    //     A_h[i] = static_cast<float>(i + 1);
-    // }
-    // std::vector<float> B_h;
-    // B_h.resize(N * K);
-    // for (int i = 0; i < N * K; i++)
-    // {
-    //     B_h[i] = static_cast<float>(i + 1);
-    // }
-
-    fmt::println("A_h={}", B_h[0]);
-    // fmt::println("A_h={}", B_h[16 * K + 16]);
-    auto C_h1 = makeRandArr(M, K);
-    auto C_h2 = makeRandArr(M, K);
-    matrix_multiplication_host(A_h.data(), B_h.data(), C_h1.data(), M, N, K);
-    solve(A_h.data(), B_h.data(), C_h2.data(), M, N, K, BM, BN, BK);
-
-    compareFloatArrays(C_h1.data(), C_h2.data(), M, K);
+    solve(A_d, B_d, C_d, M, N, K);
+    cudaMemcpy((void*) C.data(), C_d, cSize, cudaMemcpyDeviceToHost);
+    printf("-----------------------------------------------------------\n");
+    fmt::println("c={}", C);
+    fmt::println("c1={}", C1);
+    compareFloatArrays(C1.data(), C.data(), K, M);
+    return 0;
 }

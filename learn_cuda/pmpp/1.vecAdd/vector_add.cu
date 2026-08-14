@@ -1,4 +1,4 @@
-
+#include <cstddef>
 #include <iostream>
 #include <cuda_runtime.h>
 #include <cmath>
@@ -15,7 +15,7 @@ void vecAdd(float* A_h,float* B_h,float* C_h,int n){
     float* A_d = nullptr;
     float* B_d = nullptr;
     float* C_d = nullptr;
-    int size=n*sizeof(float);
+    const std::size_t size = static_cast<std::size_t>(n) * sizeof(float);
     cudaMalloc(&A_d,size);
     cudaMalloc(&B_d,size);
     cudaMalloc(&C_d,size);

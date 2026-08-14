@@ -1,10 +1,6 @@
 #include "fmt/base.h"
-#include <cstddef>
-#include <cstdio>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
-#include <iterator>
-#include <set>
 #include <unordered_set>
 #include <vector>
 using namespace std;

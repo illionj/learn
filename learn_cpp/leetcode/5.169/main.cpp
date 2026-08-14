@@ -1,25 +1,17 @@
 #include "fmt/base.h"
-#include <algorithm>
-#include <cstddef>
-#include <cstdio>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
-#include <iterator>
-#include <map>
-#include <set>
-#include <type_traits>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 using namespace std;
 
 int majorityElement_old(vector<int>& nums)
 {
-    int len = nums.size();
+    const int len = static_cast<int>(nums.size());
     int k = len / 2;
     unordered_map<int, int> m;
-    for (int i = 0; i < nums.size(); i++)
+    for (int i = 0; i < len; i++)
     {
         if (m.find(nums[i]) != m.end())
         {
@@ -81,7 +73,7 @@ int me(vector<int>& nums, int l, int r)
 
 int majorityElement(vector<int>& nums)
 {
-    return me(nums, 0, nums.size() - 1);
+    return me(nums, 0, static_cast<int>(nums.size()) - 1);
 }
 
 int main()

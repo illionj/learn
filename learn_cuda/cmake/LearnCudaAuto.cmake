@@ -76,7 +76,7 @@ function(learn_cuda_add_executable)
     learn_cuda_make_output_name(_output_name "${CUDA_DEMO_ROOT_DIR}" "${CUDA_DEMO_SOURCE}")
 
     add_executable("${_target}" "${CUDA_DEMO_SOURCE}")
-    target_compile_features("${_target}" PRIVATE cxx_std_20 cuda_std_17)
+    target_compile_features("${_target}" PRIVATE cxx_std_20)
     target_include_directories("${_target}" PRIVATE "${_source_dir}")
     target_compile_options("${_target}" PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-Wall>

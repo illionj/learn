@@ -1,17 +1,11 @@
 #include "fmt/base.h"
-#include <cstddef>
-#include <cstdio>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
-#include <iterator>
-#include <set>
-#include <unordered_set>
 #include <vector>
 using namespace std;
 
 int removeDuplicates(vector<int>& nums)
 {
-    int output = 0;
     const int len = static_cast<int>(nums.size());
     if (len == 0)
         return 0;

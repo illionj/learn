@@ -5,6 +5,21 @@
 #include <fmt/core.h>
 #include <random>
 
+std::vector<dtype> makeRegularArr(size_t cols, size_t rows)
+{
+    std::vector<float> arr;
+    arr.resize(rows * cols, 0.0f);
+    for (size_t row = 0; row < rows; ++row)
+    {
+        for (size_t col = 0; col < cols; ++col)
+        {
+            size_t idx = row * cols + col;
+            arr[idx] = static_cast<dtype>(idx);
+        }
+    }
+    return arr;
+}
+
 std::vector<dtype> makeRandArr(size_t cols, size_t rows)
 {
     // std::random_device rd;
@@ -25,7 +40,7 @@ std::vector<dtype> makeRandArr(size_t cols, size_t rows)
     return arr;
 }
 
-bool compareFloatArrays(const float* expected, const float* actual, size_t rows, size_t cols,
+bool compareFloatArrays(const float* expected, const float* actual, size_t cols, size_t rows,
                         float rtol, float atol)
 {
     for (size_t row = 0; row < rows; ++row)

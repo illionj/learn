@@ -22,7 +22,6 @@ target_include_directories(learn_cuda_common
 target_compile_features(learn_cuda_common
     PUBLIC
         cxx_std_20
-        cuda_std_17
 )
 
 target_link_libraries(learn_cuda_common

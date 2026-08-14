@@ -181,15 +181,20 @@ gdb ./demos/bin/1.miniTensor
 
 ## clangd 与格式化
 
-- `.clangd` 会读取 `build/debug/compile_commands.json`
+- `.clangd` 只负责读取 `build/debug/compile_commands.json` 和控制 clangd 的诊断行为
+- `.clang-tidy` 是 clangd 检查项的唯一配置来源
 - `.clang-format` 负责代码格式化
-- `.clang-tidy` 负责静态检查规则
+- `.vscode/settings.json` 启动 `/usr/bin/clangd-19` 并启用 clang-tidy
+- `third_party/` 使用各依赖目录自己的配置，不纳入项目检查
 
 如果你改了 CMake 配置，或者发现补全、跳转不对，先重新执行：
 
 ```bash
 cmake --preset debug
 ```
+
+修改 `.clangd` 或 `.clang-tidy` 后，在 VS Code 命令面板执行
+`clangd: Restart language server`。普通 CMake 构建不会额外执行独立的 `clang-tidy` 命令。
 
 git -c http.proxy=http://127.0.0.1:27890 \
     -c https.proxy=http://127.0.0.1:27890 \

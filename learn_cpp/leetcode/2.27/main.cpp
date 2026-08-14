@@ -1,9 +1,6 @@
 #include "fmt/base.h"
-#include <cstddef>
-#include <cstdio>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
-#include <iterator>
 #include <vector>
 
 using namespace std;
